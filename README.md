@@ -88,7 +88,7 @@ Skip these instructions if you plan to leverage the Terraform instructions below
       --display-name="Darkbit GKE Exporter"
     ```
     
-    Bind the GKE SA to this ServiceAccount for Workload Identity Integration:
+    Bind the GCP SA to this ServiceAccount for Workload Identity Integration:
     
     ```sh
     gcloud iam service-accounts add-iam-policy-binding \
@@ -96,6 +96,12 @@ Skip these instructions if you plan to leverage the Terraform instructions below
       --member="serviceAccount:${PROJECT_ID}.svc.id.goog[darkbit/darkbit]" \
       --role="roles/iam.workloadIdentityUser"
     ```
+    
+    Print the GCP SA:
+    
+    ```sh
+    echo "darkbit-gke-exporter@${PROJECT_ID}.iam.gserviceaccount.com"
+    ```    
 
 ### Terraform Instructions
 
