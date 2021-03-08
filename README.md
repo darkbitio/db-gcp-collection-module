@@ -121,7 +121,7 @@ If you followed either the manual or Terraform instructions above, you now need 
 
 1. Ensure you are `cluster-admin` or have `roles/container.admin` (Kubernetes Engine Admin)
 2. Ensure you have a valid kubeconfig/context pointing at the desired GKE cluster.
-3. Follow the instructions [here](collection/gke-manifest/README.md) for each GKE Cluster.
+3. Follow the instructions [here](collection/gke-manifest/) for each GKE Cluster.
 
 ## Support
 
