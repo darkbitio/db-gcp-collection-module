@@ -6,6 +6,10 @@ EXPORTER_GCP_SA_EMAIL="darkbit-gke-exporter@my-project-id.iam.gserviceaccount.co
 GCS_BUCKET_NAME="provided-gcs-bucket-name"
 EXPORTER_IMAGE="gcr.io/darkbit-io/gke-exporter:v0.1.9"
 
+# Populate with base64 encoded key, if provided
+# Leave blank otherwise
+EXPORTER_GKE_SA_KEY=""
+
 # Not to be user-modified
 NAMESPACE_NAME="darkbit"
 SA_NAME="darkbit"
@@ -84,9 +88,16 @@ spec:
             app: "${CRONJOB_NAME}"
         spec:
           serviceAccountName: "${SA_NAME}"
+          restartPolicy: Never
           containers:
           - name: darkbit
             image: "${EXPORTER_IMAGE}"
+            securityContext:
+              runAsUser: 65534
+              runAsGroup: 65534
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
             env:
             - name: "GCS_BUCKET_NAME"
               value: "${GCS_BUCKET_NAME}"
@@ -94,11 +105,30 @@ spec:
               value: "${GCS_BUCKET_FOLDER}"
             - name: "DEBUG_EXPORT_TIME"
               value: "${DEBUG_EXPORT_TIME}"
-            securityContext:
-              runAsUser: 65534
-              runAsGroup: 65534
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
-          restartPolicy: Never
 EOF
+if [ "${EXPORTER_GKE_SA_KEY}" != "" ]; then
+cat <<EOF
+            - name: "GOOGLE_APPLICATION_CREDENTIALS"
+              value: "/gcp/sa.key"
+            volumeMounts:
+            - name: exporter-sa-key
+              mountPath: "/gcp"
+              readOnly: true
+          volumes:
+          - name: exporter-sa-key
+            secret:
+              secretName: darkbit-exporter
+              items:
+              - key: "sa.key"
+                path: "sa.key"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "${CRONJOB_NAME}"
+  namespace: "${NAMESPACE_NAME}"
+type: Opaque
+data:
+  sa.key: ${EXPORTER_GKE_SA_KEY}
+EOF
+fi
